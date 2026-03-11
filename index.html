@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>QA Dashboard — Chat Monitoring & Analysis</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--bg4:#232c40;
+  --border:#2a3147;--accent:#4f8ef7;--accent2:#7c3aed;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --adm:#4f8ef7;--cli:#a78bfa;
+  --r:10px;--sw:264px;--hh:62px;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── Header ─────────────────────────────────────────── */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:var(--hh);background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;color:#fff;flex-shrink:0;
+}
+.logo-text .t1{font-weight:600;font-size:15px}
+.logo-text .t2{font-size:11px;color:var(--text3)}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.role-sw{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px}
+.role-btn{padding:5px 14px;border:none;background:transparent;cursor:pointer;border-radius:6px;font-size:12px;font-weight:500;color:var(--text3);transition:all .15s}
+.role-btn.a-adm{background:rgba(79,142,247,.15);color:var(--adm)}
+.role-btn.a-cli{background:rgba(167,139,250,.15);color:var(--cli)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:#3d7de8}
+.btn-g{background:transparent;color:var(--text2);border:1px solid var(--border)}.btn-g:hover{background:var(--bg3);color:var(--text)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.badge-v{background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:20px;font-size:11px;color:var(--text3)}
+
+/* ── Layout ─────────────────────────────────────────── */
+.layout{display:flex;padding-top:var(--hh);min-height:100vh}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+aside{
+  width:var(--sw);position:fixed;top:var(--hh);left:0;bottom:0;
+  background:var(--bg2);border-right:1px solid var(--border);
+  overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:2px;
+}
+.sb-lbl{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text3);padding:8px 18px 4px}
+.nav-item{display:flex;align-items:center;justify-content:space-between;padding:9px 18px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;color:var(--text2);font-size:13px}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{border-left-color:var(--accent);background:rgba(79,142,247,.07);color:var(--accent)}
+.nav-l{display:flex;align-items:center;gap:9px}
+.nav-ic{width:26px;height:26px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px}
+.nav-item.active .nav-ic{background:rgba(79,142,247,.12)}
+.npill{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--bg3);color:var(--text3)}
+.npill.done{background:rgba(34,197,94,.1);color:var(--green)}
+.npill.part{background:rgba(245,158,11,.1);color:var(--amber)}
+.sb-div{height:1px;background:var(--border);margin:8px 0}
+.sb-prog{margin:0 14px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.sbp-l{font-size:11px;color:var(--text3);margin-bottom:4px}
+.sbp-n{font-size:20px;font-weight:700}.sbp-n span{font-size:12px;font-weight:400;color:var(--text3)}
+.pbar{height:5px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:8px}
+.pbar-f{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+
+/* ── Main ────────────────────────────────────────────── */
+main{margin-left:var(--sw);flex:1;padding:32px 40px;max-width:980px}
+.stage-blk{display:none}.stage-blk.active{display:block}
+.stage-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.s-ey{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.s-ti{font-size:22px;font-weight:700}
+.s-sub{font-size:13px;color:var(--text3);margin-top:3px}
+.s-prog{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:24px}
+.spt{font-size:12px;color:var(--text2);white-space:nowrap}.spt strong{color:var(--text)}
+.spb{flex:1;height:6px;background:var(--border);border-radius:10px;overflow:hidden}
+.spb-f{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s}
+.spp{font-size:12px;font-weight:600;color:var(--accent);white-space:nowrap}
+
+/* ── Question Card (clickable row) ──────────────────── */
+.q-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:12px;
+  border-left:3px solid var(--border);
+  cursor:pointer;transition:all .18s;
+  display:flex;align-items:center;gap:12px;padding:15px 18px;
+  user-select:none;
+}
+.q-card:hover{border-color:#3a4560;background:var(--bg3);transform:translateX(2px)}
+.q-card.resolved{border-left-color:var(--green)}
+.q-card.in-disc{border-left-color:var(--accent)}
+.q-card.pending{border-left-color:var(--amber)}
+.q-num{font-size:11px;font-weight:700;color:var(--accent);background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);padding:3px 8px;border-radius:6px;flex-shrink:0;white-space:nowrap}
+.q-title{font-size:13.5px;font-weight:500;color:var(--text);flex:1;line-height:1.5}
+.q-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.q-rc{font-size:11px;color:var(--text3)}
+.q-badge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.q-badge.resolved{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.q-badge.in-disc{background:rgba(79,142,247,.1);color:var(--accent);border:1px solid rgba(79,142,247,.2)}
+.q-badge.pending{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.q-arrow{color:var(--text3);font-size:12px}
+
+/* ── Thread Modal (popup) ────────────────────────────── */
+.thread-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.thread-overlay.open{display:flex}
+
+.thread-modal{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;
+  width:100%;max-width:680px;
+  max-height:86vh;
+  display:flex;flex-direction:column;
+  animation:popIn .2s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 24px 60px rgba(0,0,0,.6);
+}
+@keyframes popIn{from{transform:scale(.96) translateY(12px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+
+/* drag handle hidden for centered modal */
+.modal-handle{display:none}
+
+/* Modal header */
+.tm-head{
+  padding:14px 22px 12px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:14px;flex-shrink:0;
+}
+.tm-num{font-size:11px;font-weight:700;color:var(--accent);background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);padding:3px 9px;border-radius:6px;flex-shrink:0;margin-top:3px}
+.tm-info{flex:1;min-width:0}
+.tm-q{font-size:14px;font-weight:600;color:var(--text);line-height:1.5}
+.tm-meta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+.tm-stage{font-size:11px;color:var(--text3)}
+.tm-close{
+  width:30px;height:30px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--text2);flex-shrink:0;transition:all .15s;margin-top:2px;
+}
+.tm-close:hover{background:var(--bg4);color:var(--text)}
+
+/* Thread messages scroll area */
+.tm-thread{
+  flex:1;overflow-y:auto;padding:18px 22px;
+  display:flex;flex-direction:column;gap:12px;
+  min-height:180px;
+}
+.thread-empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;font-style:italic}
+
+/* Messages */
+.msg{display:flex;gap:10px;align-items:flex-start}
+.msg.client{flex-direction:row-reverse}
+.msg-av{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;margin-top:2px;
+}
+.msg.admin  .msg-av{background:rgba(79,142,247,.15);color:var(--adm)}
+.msg.client .msg-av{background:rgba(167,139,250,.15);color:var(--cli)}
+.msg-wrap{display:flex;flex-direction:column;max-width:75%}
+.msg.client .msg-wrap{align-items:flex-end}
+.msg-meta{font-size:10px;color:var(--text3);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.msg.client .msg-meta{flex-direction:row-reverse}
+.msg-who{font-weight:600}
+.msg.admin  .msg-who{color:var(--adm)}
+.msg.client .msg-who{color:var(--cli)}
+.msg-bub{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;white-space:pre-wrap}
+.msg.admin  .msg-bub{background:var(--bg3);border:1px solid var(--border);border-top-left-radius:2px;color:var(--text)}
+.msg.client .msg-bub{background:rgba(167,139,250,.09);border:1px solid rgba(167,139,250,.2);border-top-right-radius:2px;color:var(--text)}
+
+/* Resolved marker inside thread */
+.res-mark{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:rgba(34,197,94,.06);border:1px dashed rgba(34,197,94,.3);
+  border-radius:8px;font-size:12px;color:var(--green);margin-top:4px;
+}
+
+/* Modal footer — reply box */
+.tm-foot{flex-shrink:0;border-top:1px solid var(--border)}
+
+.reply-bar{
+  padding:12px 18px;background:var(--bg3);
+  display:flex;align-items:flex-end;gap:10px;
+}
+.reply-bar.disabled{opacity:.45;pointer-events:none}
+.reply-l{flex:1;display:flex;flex-direction:column;gap:8px}
+.who-row{display:flex;align-items:center;gap:8px}
+.who-lbl{font-size:11px;font-weight:600;color:var(--text3)}
+.who-tog{display:flex;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:2px;gap:2px}
+.who-btn{padding:4px 12px;border:none;background:transparent;cursor:pointer;border-radius:5px;font-size:11px;font-weight:600;color:var(--text3);transition:all .15s}
+.who-btn.a-adm{background:rgba(79,142,247,.15);color:var(--adm)}
+.who-btn.a-cli{background:rgba(167,139,250,.15);color:var(--cli)}
+.reply-ta{
+  width:100%;min-height:56px;max-height:140px;
+  background:var(--bg4);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+  font-size:13px;color:var(--text);font-family:inherit;
+  resize:none;outline:none;transition:border-color .15s;line-height:1.5;
+}
+.reply-ta:focus{border-color:var(--accent)}
+.send-btn{
+  padding:10px 16px;background:var(--accent);color:#fff;
+  border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;
+  flex-shrink:0;transition:all .15s;align-self:flex-end;
+}
+.send-btn:hover{background:#3d7de8}
+
+/* Resolve footer row */
+.resolve-row{
+  padding:10px 18px 14px;background:var(--bg3);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.resolve-row.resolved-state{background:rgba(34,197,94,.04)}
+.resolve-hint{font-size:12px;color:var(--text3)}.resolve-hint strong{color:var(--text2)}
+.btn-res{
+  background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25);
+  font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:600;
+  transition:all .15s;display:flex;align-items:center;gap:5px;
+}
+.btn-res:hover{background:rgba(34,197,94,.22)}
+.btn-res:disabled{opacity:.45;cursor:not-allowed}
+.btn-rop{
+  background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.2);
+  font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:600;transition:all .15s;
+}
+.btn-rop:hover{background:rgba(245,158,11,.2)}
+
+/* ── Overview ────────────────────────────────────────── */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:22px}
+.ov-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.ov-l{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px;font-weight:600}
+.ov-v{font-size:26px;font-weight:700}
+.ov-s{font-size:11px;color:var(--text3);margin-top:2px}
+.info-bx{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.info-bx table{width:100%;border-collapse:collapse}
+.info-bx td{padding:10px 16px;font-size:13px;border-bottom:1px solid var(--border)}
+.info-bx tr:last-child td{border-bottom:none}
+.info-bx td:first-child{color:var(--text3);width:150px;font-size:12px}
+.info-bx td:last-child{color:var(--text);font-weight:500}
+.sst{width:100%;border-collapse:collapse}
+.sst th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:8px 12px;border-bottom:1px solid var(--border)}
+.sst td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px}
+.sst tr:last-child td{border-bottom:none}
+.sst tr:hover td{background:var(--bg3)}
+.sst-mini{height:4px;background:var(--border);border-radius:10px;margin-top:5px;overflow:hidden}
+.sst-mini-f{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.sst-go{font-size:12px;color:var(--accent);cursor:pointer}.sst-go:hover{text-decoration:underline}
+
+/* ── Add Question Modal ──────────────────────────────── */
+.add-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);align-items:center;justify-content:center}
+.add-overlay.open{display:flex}
+.add-modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:520px;max-width:95vw;padding:26px;animation:slideUp .18s ease}
+.add-title{font-size:16px;font-weight:700;margin-bottom:18px}
+.flbl{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:5px}
+.frow{margin-bottom:14px}
+.finput,.fsel,.fta{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;transition:border-color .15s}
+.finput:focus,.fsel:focus,.fta:focus{border-color:var(--accent)}
+.fsel option{background:var(--bg3)}
+.fta{min-height:80px;resize:vertical}
+.modal-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+
+/* ── Toast ───────────────────────────────────────────── */
+.toasts{position:fixed;bottom:22px;right:22px;z-index:600;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:11px 16px;font-size:13px;display:flex;align-items:center;gap:9px;min-width:210px;box-shadow:0 8px 28px rgba(0,0,0,.4);animation:toastIn .2s ease}
+@keyframes toastIn{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
+.ti-ok{color:var(--green)}.ti-i{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">QA</div>
+    <div class="logo-text">
+      <div class="t1">Chat Monitoring & Analysis</div>
+      <div class="t2">Questions & Clarifications for Stakeholder Review</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <div class="role-sw">
+      <button class="role-btn a-adm" id="role-adm" onclick="setRole('admin')">👤 Admin</button>
+      <button class="role-btn" id="role-cli" onclick="setRole('client')">🏢 Client</button>
+    </div>
+    <span class="badge-v">v1.0 · Mar 2026</span>
+    <button class="btn btn-g btn-sm" onclick="openAddModal()">＋ Add Question</button>
+    <button class="btn btn-p btn-sm" onclick="exportMD()">↓ Export</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside>
+    <div class="sb-prog">
+      <div class="sbp-l">Overall Completion</div>
+      <div class="sbp-n" id="overall-num">0 <span>/ 41 resolved</span></div>
+      <div class="pbar"><div class="pbar-f" id="overall-bar" style="width:0%"></div></div>
+    </div>
+    <div class="sb-div"></div>
+    <div class="sb-lbl">Navigation</div>
+    <div class="nav-item active" data-stage="overview" onclick="showStage('overview',this)">
+      <div class="nav-l"><div class="nav-ic">🏠</div>Overview</div>
+    </div>
+    <div class="nav-item" data-stage="s1" onclick="showStage('s1',this)">
+      <div class="nav-l"><div class="nav-ic">💬</div>Intercom Chat</div>
+      <span class="npill" id="pill-s1">0/6</span>
+    </div>
+    <div class="nav-item" data-stage="s2" onclick="showStage('s2',this)">
+      <div class="nav-l"><div class="nav-ic">🔌</div>Data Collection</div>
+      <span class="npill" id="pill-s2">0/6</span>
+    </div>
+    <div class="nav-item" data-stage="s3" onclick="showStage('s3',this)">
+      <div class="nav-l"><div class="nav-ic">🤖</div>AI Analysis</div>
+      <span class="npill" id="pill-s3">0/9</span>
+    </div>
+    <div class="nav-item" data-stage="s4" onclick="showStage('s4',this)">
+      <div class="nav-l"><div class="nav-ic">🔔</div>Insights & Alerts</div>
+      <span class="npill" id="pill-s4">0/5</span>
+    </div>
+    <div class="nav-item" data-stage="s5" onclick="showStage('s5',this)">
+      <div class="nav-l"><div class="nav-ic">📋</div>Reports & Tickets</div>
+      <span class="npill" id="pill-s5">0/10</span>
+    </div>
+    <div class="nav-item" data-stage="s6" onclick="showStage('s6',this)">
+      <div class="nav-l"><div class="nav-ic">⚙️</div>Architecture</div>
+      <span class="npill" id="pill-s6">0/5</span>
+    </div>
+  </aside>
+
+  <main>
+    <!-- Overview -->
+    <div class="stage-blk active" id="stage-overview">
+      <div class="stage-hdr"><div>
+        <div class="s-ey">Dashboard</div>
+        <div class="s-ti">Overview</div>
+        <div class="s-sub">All stages · Chat Monitoring & Analysis</div>
+      </div></div>
+      <div class="ov-grid">
+        <div class="ov-card"><div class="ov-l">Total Questions</div><div class="ov-v" id="ov-total">41</div><div class="ov-s">across 6 stages</div></div>
+        <div class="ov-card"><div class="ov-l">Resolved</div><div class="ov-v" id="ov-res" style="color:var(--green)">—</div><div class="ov-s">marked answered</div></div>
+        <div class="ov-card"><div class="ov-l">In Discussion</div><div class="ov-v" id="ov-disc" style="color:var(--accent)">—</div><div class="ov-s">active threads</div></div>
+        <div class="ov-card"><div class="ov-l">Pending</div><div class="ov-v" id="ov-pend" style="color:var(--amber)">—</div><div class="ov-s">no replies yet</div></div>
+      </div>
+      <div class="info-bx" style="margin-bottom:22px">
+        <table>
+          <tr><td>Document</td><td>QA - AI Tool</td></tr>
+          <tr><td>Prepared</td><td>March 6, 2026</td></tr>
+          <tr><td>Version</td><td>1.0</td></tr>
+          <tr><td>Current Role</td><td id="ov-role">Admin</td></tr>
+          <tr><td>Last Updated</td><td id="ov-date">—</td></tr>
+        </table>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Stage Breakdown</div>
+      <div class="info-bx"><table class="sst">
+        <thead><tr><th>Stage</th><th>Resolved</th><th style="min-width:130px">Progress</th><th></th></tr></thead>
+        <tbody id="sst-body"></tbody>
+      </table></div>
+    </div>
+
+    <!-- Stage blocks -->
+    <div class="stage-blk" id="stage-s1">
+      <div class="stage-hdr"><div><div class="s-ey">Stage 1</div><div class="s-ti">Intercom Chat (Source System)</div><div class="s-sub">6 questions — click any to open the conversation thread</div></div></div>
+      <div class="s-prog"><span class="spt"><strong id="s1-d">0</strong> of 6 resolved</span><div class="spb"><div class="spb-f" id="s1-bar" style="width:0%"></div></div><span class="spp" id="s1-pct">0%</span></div>
+      <div id="qc-s1"></div>
+    </div>
+    <div class="stage-blk" id="stage-s2">
+      <div class="stage-hdr"><div><div class="s-ey">Stage 2</div><div class="s-ti">Chat Data Collection (API)</div><div class="s-sub">6 questions — click any to open the conversation thread</div></div></div>
+      <div class="s-prog"><span class="spt"><strong id="s2-d">0</strong> of 6 resolved</span><div class="spb"><div class="spb-f" id="s2-bar" style="width:0%"></div></div><span class="spp" id="s2-pct">0%</span></div>
+      <div id="qc-s2"></div>
+    </div>
+    <div class="stage-blk" id="stage-s3">
+      <div class="stage-hdr"><div><div class="s-ey">Stage 3</div><div class="s-ti">AI Monitoring & Analysis</div><div class="s-sub">9 questions — click any to open the conversation thread</div></div></div>
+      <div class="s-prog"><span class="spt"><strong id="s3-d">0</strong> of 9 resolved</span><div class="spb"><div class="spb-f" id="s3-bar" style="width:0%"></div></div><span class="spp" id="s3-pct">0%</span></div>
+      <div id="qc-s3"></div>
+    </div>
+    <div class="stage-blk" id="stage-s4">
+      <div class="stage-hdr"><div><div class="s-ey">Stage 4</div><div class="s-ti">Insights & Alerts</div><div class="s-sub">5 questions — click any to open the conversation thread</div></div></div>
+      <div class="s-prog"><span class="spt"><strong id="s4-d">0</strong> of 5 resolved</span><div class="spb"><div class="spb-f" id="s4-bar" style="width:0%"></div></div><span class="spp" id="s4-pct">0%</span></div>
+      <div id="qc-s4"></div>
+    </div>
+    <div class="stage-blk" id="stage-s5">
+      <div class="stage-hdr"><div><div class="s-ey">Stage 5</div><div class="s-ti">Reports + Tickets</div><div class="s-sub">10 questions — click any to open the conversation thread</div></div></div>
+      <div class="s-prog"><span class="spt"><strong id="s5-d">0</strong> of 10 resolved</span><div class="spb"><div class="spb-f" id="s5-bar" style="width:0%"></div></div><span class="spp" id="s5-pct">0%</span></div>
+      <div id="qc-s5"></div>
+    </div>
+    <div class="stage-blk" id="stage-s6">
+      <div class="stage-hdr"><div><div class="s-ey">Stage 6</div><div class="s-ti">General: Overall System & Architecture</div><div class="s-sub">5 questions — click any to open the conversation thread</div></div></div>
+      <div class="s-prog"><span class="spt"><strong id="s6-d">0</strong> of 5 resolved</span><div class="spb"><div class="spb-f" id="s6-bar" style="width:0%"></div></div><span class="spp" id="s6-pct">0%</span></div>
+      <div id="qc-s6"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ── Thread Popup ────────────────────────────────────────────── -->
+<div class="thread-overlay" id="thread-overlay" onclick="handleOverlayClick(event)">
+  <div class="thread-modal" id="thread-modal">
+    <div class="modal-handle"><div class="modal-handle-bar"></div></div>
+
+    <!-- Modal header -->
+    <div class="tm-head">
+      <span class="tm-num" id="tm-num">Q1.1</span>
+      <div class="tm-info">
+        <div class="tm-q" id="tm-q">Question text</div>
+        <div class="tm-meta">
+          <span class="tm-stage" id="tm-stage">Stage 1</span>
+          <span class="q-badge pending" id="tm-badge">Pending</span>
+        </div>
+      </div>
+      <div class="tm-close" onclick="closeThread()">✕</div>
+    </div>
+
+    <!-- Thread messages -->
+    <div class="tm-thread" id="tm-thread"></div>
+
+    <!-- Footer -->
+    <div class="tm-foot">
+      <div class="reply-bar" id="tm-reply">
+        <div class="reply-l">
+          <div class="who-row">
+            <span class="who-lbl">Replying as:</span>
+            <div class="who-tog">
+              <button class="who-btn" id="tm-who-adm" onclick="switchWho('admin')">👤 Admin</button>
+              <button class="who-btn" id="tm-who-cli" onclick="switchWho('client')">🏢 Client</button>
+            </div>
+          </div>
+          <textarea class="reply-ta" id="tm-ta"
+            placeholder="Type your reply… (Ctrl+Enter to send)"
+            onkeydown="handleKey(event)"></textarea>
+        </div>
+        <button class="send-btn" onclick="sendReply()">Send ↑</button>
+      </div>
+      <div class="resolve-row" id="tm-resolve-row">
+        <span class="resolve-hint" id="tm-hint">Once both sides agree, mark as <strong>Resolved</strong></span>
+        <button class="btn-res" id="tm-res-btn" onclick="resolveQ()">✓ Mark as Resolved</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add Question Modal ─────────────────────────────────────── -->
+<div class="add-overlay" id="add-overlay">
+  <div class="add-modal">
+    <div class="add-title">Add New Question</div>
+    <div class="frow"><label class="flbl">Stage</label>
+      <select class="fsel" id="m-stage">
+        <option value="s1">Stage 1 — Intercom Chat</option>
+        <option value="s2">Stage 2 — Data Collection</option>
+        <option value="s3">Stage 3 — AI Analysis</option>
+        <option value="s4">Stage 4 — Insights & Alerts</option>
+        <option value="s5">Stage 5 — Reports & Tickets</option>
+        <option value="s6">Stage 6 — Architecture</option>
+      </select>
+    </div>
+    <div class="frow"><label class="flbl">Question</label><textarea class="fta" id="m-q" placeholder="Enter question text…"></textarea></div>
+    <div class="frow"><label class="flbl">Opening message (optional)</label><textarea class="fta" id="m-msg" placeholder="Optional first message from Admin…" style="min-height:60px"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn btn-g" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-p" onclick="addQuestion()">Add Question</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+const SMETA = {
+  s1:{label:'Intercom Chat',emoji:'💬',full:'Stage 1 — Intercom Chat'},
+  s2:{label:'Data Collection (API)',emoji:'🔌',full:'Stage 2 — Data Collection'},
+  s3:{label:'AI Monitoring & Analysis',emoji:'🤖',full:'Stage 3 — AI Analysis'},
+  s4:{label:'Insights & Alerts',emoji:'🔔',full:'Stage 4 — Insights & Alerts'},
+  s5:{label:'Reports + Tickets',emoji:'📋',full:'Stage 5 — Reports & Tickets'},
+  s6:{label:'General Architecture',emoji:'⚙️',full:'Stage 6 — Architecture'},
+};
+
+const SEED=[
+  {id:'q1.1',stage:'s1',num:'Q1.1',text:'What defines a "completed" chat? Agent closes it, auto-closed after inactivity, or marked "resolved" in Intercom?'},
+  {id:'q1.2',stage:'s1',num:'Q1.2',text:'Are bot-handled conversations included or excluded from analysis?'},
+  {id:'q1.3',stage:'s1',num:'Q1.3',text:'If a completed conversation is reopened by a player, should the system re-analyze the updated conversation?'},
+  {id:'q1.4',stage:'s1',num:'Q1.4',text:'What is the estimated daily volume of completed conversations?'},
+  {id:'q1.5',stage:'s1',num:'Q1.5',text:'Are there specific teams, inboxes, or conversation tags that should be included or excluded?'},
+  {id:'q1.6',stage:'s1',num:'Q1.6',text:'Do we need to process historical conversations (backfill), or only from launch date forward?'},
+  {id:'q2.1',stage:'s2',num:'Q2.1',text:'What time should the daily data collection run?'},
+  {id:'q2.2',stage:'s2',num:'Q2.2',text:'Do we have existing Intercom API access? What permission level?'},
+  {id:'q2.3',stage:'s2',num:'Q2.3',text:'What data fields should be collected per conversation?'},
+  {id:'q2.4',stage:'s2',num:'Q2.4',text:'How should conversations containing multimedia (images, files, links) be handled?'},
+  {id:'q2.5',stage:'s2',num:'Q2.5',text:'Are there data privacy or compliance requirements (GDPR, PII masking)?'},
+  {id:'q2.6',stage:'s2',num:'Q2.6',text:'Where should raw conversation data be stored and for how long?'},
+  {id:'q3.1',stage:'s3',num:'Q3.1',text:'Should the system flag conversations where the player is dissatisfied at any point, or only where unresolved at the end?'},
+  {id:'q3.2',stage:'s3',num:'Q3.2',text:'Is there a severity scale (Low/Medium/High/Critical) or a simple Yes/No flag?'},
+  {id:'q3.3',stage:'s3',num:'Q3.3',text:'For unresolved case detection, should AI determine from conversation content, Intercom status, or both?'},
+  {id:'q3.4',stage:'s3',num:'Q3.4',text:'What qualifies as a "technical issue"?'},
+  {id:'q3.5',stage:'s3',num:'Q3.5',text:'For pattern identification, what timeframe — daily, weekly, or rolling window?'},
+  {id:'q3.6',stage:'s3',num:'Q3.6',text:'Should agent performance be evaluated as part of this analysis? If yes, what defines good vs. poor communication?'},
+  {id:'q3.7',stage:'s3',num:'Q3.7',text:'How should the system handle multilingual conversations? What languages are expected?'},
+  {id:'q3.8',stage:'s3',num:'Q3.8',text:'Should the AI provide specific quotes/snippets from conversations, or just summary-level assessments?'},
+  {id:'q3.9',stage:'s3',num:'Q3.9',text:'Is there an existing issue classification list, or should the AI generate categories dynamically?'},
+  {id:'q4.1',stage:'s4',num:'Q4.1',text:'What is the difference between AI Analysis (Stage 3) and Insights & Alerts?'},
+  {id:'q4.2',stage:'s4',num:'Q4.2',text:'What conditions should trigger an alert? Define specific scenarios.'},
+  {id:'q4.3',stage:'s4',num:'Q4.3',text:'How should alerts be delivered — email, Slack, SMS, push notification, or dashboard?'},
+  {id:'q4.4',stage:'s4',num:'Q4.4',text:'Should alerts be real-time (immediate) or batched into the daily report?'},
+  {id:'q4.5',stage:'s4',num:'Q4.5',text:'Who should receive alerts — team leaders only, QA managers, or specific roles based on alert type?'},
+  {id:'q5.1',stage:'s5',num:'Q5.1',text:'Daily Summary Email: Who are the recipients — single distribution list, per-team summaries, or role-based?'},
+  {id:'q5.2',stage:'s5',num:'Q5.2',text:'Daily Summary Email: What format — HTML email body, PDF attachment, or link to online dashboard?'},
+  {id:'q5.3',stage:'s5',num:'Q5.3',text:'Daily Summary Email: What information should be included?'},
+  {id:'q5.4',stage:'s5',num:'Q5.4',text:'Task/Ticket Creation: Which tool — Jira, Asana, Intercom Tickets, ClickUp, or another platform?'},
+  {id:'q5.5',stage:'s5',num:'Q5.5',text:'Task/Ticket Creation: One ticket per flagged conversation, or one aggregated ticket per day?'},
+  {id:'q5.6',stage:'s5',num:'Q5.6',text:'Task/Ticket Creation: What fields per ticket?'},
+  {id:'q5.7',stage:'s5',num:'Q5.7',text:'Task/Ticket Creation: How are tickets assigned — by team leader, round-robin, issue type, or manually?'},
+  {id:'q5.8',stage:'s5',num:'Q5.8',text:'What is the expected action from team leaders after receiving a ticket?'},
+  {id:'q5.9',stage:'s5',num:'Q5.9',text:'Monthly Report: Should this be fully AI-generated or human-curated using AI-provided data?'},
+  {id:'q5.10',stage:'s5',num:'Q5.10',text:'Monthly Report: What type of recommendations — agent coaching, process changes, product/technical fixes, or all?'},
+  {id:'q6.1',stage:'s6',num:'Q6.1',text:'Is there a feedback mechanism for team leaders to mark AI flags as accurate or false positive?'},
+  {id:'q6.2',stage:'s6',num:'Q6.2',text:'What should happen when the system encounters an error (API failure, AI timeout)?'},
+  {id:'q6.3',stage:'s6',num:'Q6.3',text:'Are there existing tools, dashboards, or reports this system should integrate with or replace?'},
+  {id:'q6.4',stage:'s6',num:'Q6.4',text:'What does success look like? Are there specific KPIs?'},
+  {id:'q6.5',stage:'s6',num:'Q6.5',text:'Is there a preferred timeline or phased rollout?'},
+];
+
+const SEED_THREADS={
+  'q1.1':[{role:'admin',text:'What defines a "completed" chat?',ts:'2026-03-06T09:00:00Z'},{role:'client',text:'A Closed Chat (regardless of who closed it) = "Completed Chat"',ts:'2026-03-06T10:15:00Z'}],
+  'q1.2':[{role:'admin',text:'Are bot-handled conversations included or excluded?',ts:'2026-03-06T09:01:00Z'},{role:'client',text:'Included. When analyzing player dissatisfaction, any chat should be taken into consideration. For agent analysis, different story.',ts:'2026-03-06T10:16:00Z'}],
+  'q1.3':[{role:'admin',text:'If a completed conversation is reopened by a player, should the system re-analyze it?',ts:'2026-03-06T09:02:00Z'},{role:'client',text:'A closed chat can only be reopened by an agent. A snoozed chat can be reopened by the player, but it\'s not considered "completed." Re-analysis unlikely needed.',ts:'2026-03-06T10:17:00Z'}],
+  'q1.4':[{role:'admin',text:'What is the estimated daily volume of completed conversations?',ts:'2026-03-06T09:03:00Z'},{role:'client',text:'600–700 common range; can go up to 1,000+ during promotions.',ts:'2026-03-06T10:18:00Z'}],
+  'q1.5':[{role:'admin',text:'Are there specific teams, inboxes, or conversation tags to include or exclude?',ts:'2026-03-06T09:04:00Z'},{role:'client',text:'No, not really.',ts:'2026-03-06T10:19:00Z'}],
+  'q1.6':[{role:'admin',text:'Do we need to process historical conversations (backfill)?',ts:'2026-03-06T09:05:00Z'},{role:'client',text:'Going back a few months would be helpful, but if it delays live analysis, prefer moving forward quickly.',ts:'2026-03-06T10:20:00Z'}],
+  'q2.1':[{role:'admin',text:'What time should the daily data collection run?',ts:'2026-03-06T09:06:00Z'},{role:'client',text:'6 AM CET.',ts:'2026-03-06T10:21:00Z'}],
+  'q2.2':[{role:'admin',text:'Do we have existing Intercom API access? What permission level?',ts:'2026-03-06T09:07:00Z'},{role:'client',text:'Solved already.',ts:'2026-03-06T10:22:00Z'}],
+  'q2.3':[{role:'admin',text:'What data fields should be collected per conversation?',ts:'2026-03-06T09:08:00Z'},{role:'client',text:'Messages, tags, and custom attributes for sure. Will send example export of fields.',ts:'2026-03-06T10:23:00Z'}],
+  'q2.4':[{role:'admin',text:'How should conversations containing multimedia be handled?',ts:'2026-03-06T09:09:00Z'},{role:'client',text:'Could be error issue, KYC, or bonus promotion email. Need samples to determine which are reliable to analyze.',ts:'2026-03-06T10:24:00Z'}],
+  'q2.5':[{role:'admin',text:'Are there data privacy or compliance requirements (GDPR, PII masking)?',ts:'2026-03-06T09:10:00Z'},{role:'client',text:'Likely yes, but worth confirming with Maria and Alex to ensure alignment.',ts:'2026-03-06T10:25:00Z'}],
+  'q3.1':[{role:'admin',text:'Should the system flag dissatisfaction at any point, or only if unresolved at end?',ts:'2026-03-06T09:12:00Z'},{role:'client',text:'At any point.',ts:'2026-03-06T10:27:00Z'}],
+  'q3.2':[{role:'admin',text:'Is there a severity scale or a simple Yes/No flag?',ts:'2026-03-06T09:13:00Z'},{role:'client',text:'Stick with just flagging for now. Issues like inability to deposit, declined cards, or unclaimable bonus codes = critical flags.',ts:'2026-03-06T10:28:00Z'}],
+  'q3.3':[{role:'admin',text:'For unresolved case detection — conversation content, Intercom status, or both?',ts:'2026-03-06T09:14:00Z'},{role:'client',text:'A player may contact support multiple times. A single chat cannot reliably determine if case was ultimately resolved. Should be based on conversation content, not just status fields.',ts:'2026-03-06T10:29:00Z'}],
+  'q3.4':[{role:'admin',text:'What qualifies as a "technical issue"?',ts:'2026-03-06T09:15:00Z'},{role:'client',text:'1. Login & Account Access\n2. Payments (deposit failures, declines)\n3. Game Functionality (bugs, crashes, loading issues)\n4. Bonuses (claim issues, code problems)\n5. Website & Navigation\n6. Device & Compatibility',ts:'2026-03-06T10:30:00Z'}],
+  'q3.5':[{role:'admin',text:'For pattern identification, what timeframe — daily, weekly, or rolling window?',ts:'2026-03-06T09:16:00Z'},{role:'client',text:'Track weekly and monthly trends. Monitor daily as well; flag anomalies outside normal range immediately. Include all patterns in daily, weekly, and monthly reports.',ts:'2026-03-06T10:31:00Z'}],
+  'q3.6':[{role:'admin',text:'Should agent performance be evaluated? What defines good vs. poor communication?',ts:'2026-03-06T09:17:00Z'},{role:'client',text:'Yes, but this will come at a later stage. Need time to carefully define good vs. poor communication.',ts:'2026-03-06T10:32:00Z'}],
+  'q3.7':[{role:'admin',text:'How should the system handle multilingual conversations? What languages are expected?',ts:'2026-03-06T09:18:00Z'},{role:'client',text:'Arabic, German, Greek, English, Finnish, French, Italian, Norwegian, Portuguese.',ts:'2026-03-06T10:33:00Z'}],
+  'q3.8':[{role:'admin',text:'Should the AI provide specific quotes/snippets, or just summary-level assessments?',ts:'2026-03-06T09:19:00Z'},{role:'client',text:'For player dissatisfaction: summary-level assessments usually sufficient. For agent evaluation: include actual conversation snippets for actionable feedback.',ts:'2026-03-06T10:34:00Z'}],
+  'q3.9':[{role:'admin',text:'Existing issue classification list, or should AI generate categories dynamically?',ts:'2026-03-06T09:20:00Z'},{role:'client',text:"Don't have predefined list yet. Start with whatever AI initially generates, then formalize once we have data. Still allow AI to flag anything outside those categories.",ts:'2026-03-06T10:35:00Z'}],
+  'q4.1':[{role:'admin',text:'What is the difference between AI Analysis (Stage 3) and Insights & Alerts?',ts:'2026-03-06T09:21:00Z'},{role:'client',text:'Stage 3 = processing/analysis focus. Insights = feedback/reports (daily, weekly, monthly summaries). Alerts = separate flags for critical issues needing immediate attention.',ts:'2026-03-06T10:36:00Z'}],
+  'q5.4':[{role:'admin',text:'Task/Ticket Creation: Which tool?',ts:'2026-03-06T09:25:00Z'},{role:'client',text:'Asana.',ts:'2026-03-06T10:40:00Z'}],
+  'q5.5':[{role:'admin',text:'One ticket per flagged conversation, or one aggregated ticket per day?',ts:'2026-03-06T09:26:00Z'},{role:'client',text:'One ticket per flagged conversation. If batched, group conversations with same core issue.',ts:'2026-03-06T10:41:00Z'}],
+  'q5.6':[{role:'admin',text:'What fields per ticket?',ts:'2026-03-06T09:27:00Z'},{role:'client',text:'Each ticket should include: player account link, Intercom conversation link, issue summary, triggering snippet, recommended action.\n\nFor agent performance: master ticket per agent with individual flagged instances.\nFor player issues: master per category with flagged conversations grouped.',ts:'2026-03-06T10:42:00Z'}],
+  'q5.7':[{role:'admin',text:'How are tickets assigned?',ts:'2026-03-06T09:28:00Z'},{role:'client',text:'All tickets should be assigned directly to val@roosterpartners.com.',ts:'2026-03-06T10:43:00Z'}],
+  'q5.8':[{role:'admin',text:'What is the expected action from team leaders after receiving a ticket?',ts:'2026-03-06T09:29:00Z'},{role:'client',text:'Depends on ticket type: review, coach agent, follow up with player, or escalate. Define and discuss at a later stage.',ts:'2026-03-06T10:44:00Z'}],
+  'q5.9':[{role:'admin',text:'Monthly Report: fully AI-generated or human-curated?',ts:'2026-03-06T09:30:00Z'},{role:'client',text:'Fixed structure each month, but content reflects AI analysis. Structure is fixed, insights/feedback vary based on AI output.',ts:'2026-03-06T10:45:00Z'}],
+  'q5.10':[{role:'admin',text:'Monthly Report: What type of recommendations?',ts:'2026-03-06T09:31:00Z'},{role:'client',text:'All types: agent coaching, process changes, product/technical fixes. Can adjust after seeing actual report output.',ts:'2026-03-06T10:46:00Z'}],
+  'q6.1':[{role:'admin',text:'Is there a feedback mechanism for team leaders to mark AI flags as accurate or false positive?',ts:'2026-03-06T09:32:00Z'},{role:'client',text:"Don't currently have mechanism, but would be useful for tracking accuracy and improving AI over time.",ts:'2026-03-06T10:47:00Z'}],
+  'q6.2':[{role:'admin',text:'What should happen when the system encounters an error?',ts:'2026-03-06T09:33:00Z'},{role:'client',text:'Automatic retry logic (second and third attempts 15–20 minutes later). Backup mechanism to ensure daily summaries, insights, and alerts from previous day are delivered.',ts:'2026-03-06T10:48:00Z'}],
+  'q6.3':[{role:'admin',text:'Existing tools or dashboards this system should integrate with or replace?',ts:'2026-03-06T09:34:00Z'},{role:'client',text:'No existing dashboards. Everything manual so far (live chat QA, ticket tracking). This system replaces all manual work, not an existing tool.',ts:'2026-03-06T10:49:00Z'}],
+  'q6.4':[{role:'admin',text:'What does success look like? Are there specific KPIs?',ts:'2026-03-06T09:35:00Z'},{role:'client',text:'(1) Reliably detect actual player issues with high accuracy; learn to avoid escalating non-actionable flags (e.g., unhappy about denied bonus).\n(2) Maintain consistent structure in reports for easy interpretation.',ts:'2026-03-06T10:50:00Z'}],
+};
+
+const PRE_RESOLVED=['q1.1','q1.2','q1.3','q1.4','q1.5','q1.6','q2.1','q2.2','q2.3','q2.4','q2.5','q3.1','q3.2','q3.3','q3.4','q3.5','q3.6','q3.7','q3.8','q3.9','q4.1','q5.4','q5.5','q5.6','q5.7','q5.8','q5.9','q5.10','q6.1','q6.2','q6.3','q6.4'];
+
+// ── STATE ─────────────────────────────────────────────────────────
+let questions=[], currentRole='admin', openQid=null;
+const SK='qa-dash-v4';
+
+function loadState(){
+  try{
+    const s=localStorage.getItem(SK);
+    if(s){const d=JSON.parse(s);questions=d.questions;currentRole=d.role||'admin';}
+    else initDefault();
+  }catch(e){initDefault();}
+}
+function initDefault(){
+  questions=SEED.map(s=>({...s,thread:SEED_THREADS[s.id]?[...SEED_THREADS[s.id]]:[],resolved:PRE_RESOLVED.includes(s.id)}));
+}
+function save(){localStorage.setItem(SK,JSON.stringify({questions,role:currentRole}));}
+
+// ── ROLE ──────────────────────────────────────────────────────────
+function setRole(r){
+  currentRole=r; save();
+  document.getElementById('role-adm').className='role-btn'+(r==='admin'?' a-adm':'');
+  document.getElementById('role-cli').className='role-btn'+(r==='client'?' a-cli':'');
+  document.getElementById('ov-role').textContent=r==='admin'?'Admin':'Client';
+  syncWhoUI();
+}
+function syncWhoUI(){
+  const adm=document.getElementById('tm-who-adm');
+  const cli=document.getElementById('tm-who-cli');
+  if(!adm||!cli) return;
+  adm.className='who-btn'+(currentRole==='admin'?' a-adm':'');
+  cli.className='who-btn'+(currentRole==='client'?' a-cli':'');
+}
+function switchWho(r){currentRole=r;save();syncWhoUI();}
+
+// ── RENDER CARDS ──────────────────────────────────────────────────
+function renderAll(){
+  ['s1','s2','s3','s4','s5','s6'].forEach(renderStage);
+  renderOverview();updateGlobal();updatePills();
+  setRole(currentRole);
+}
+
+function renderStage(stage){
+  const c=document.getElementById('qc-'+stage);
+  if(!c)return;
+  c.innerHTML='';
+  questions.filter(q=>q.stage===stage).forEach(q=>c.appendChild(buildCard(q)));
+  updateStageProg(stage);
+}
+
+function buildCard(q){
+  const hasThread=q.thread.length>0;
+  const sc=q.resolved?'resolved':hasThread?'in-disc':'pending';
+  const sl=q.resolved?'Resolved':hasThread?'In Discussion':'Pending';
+  const div=document.createElement('div');
+  div.className='q-card '+sc;
+  div.id='card-'+q.id;
+  div.onclick=()=>openThread(q.id);
+  div.innerHTML=`
+    <span class="q-num">${esc(q.num)}</span>
+    <span class="q-title">${esc(q.text)}</span>
+    <div class="q-right">
+      ${hasThread?`<span class="q-rc">💬 ${q.thread.length}</span>`:''}
+      <span class="q-badge ${sc}">${sl}</span>
+      <span class="q-arrow">›</span>
+    </div>`;
+  return div;
+}
+
+// ── THREAD POPUP ──────────────────────────────────────────────────
+function openThread(qid){
+  const q=questions.find(x=>x.id===qid);
+  if(!q)return;
+  openQid=qid;
+
+  // Header
+  document.getElementById('tm-num').textContent=q.num;
+  document.getElementById('tm-q').textContent=q.text;
+  document.getElementById('tm-stage').textContent=SMETA[q.stage].full;
+
+  // Badge
+  const sc=q.resolved?'resolved':q.thread.length>0?'in-disc':'pending';
+  const sl=q.resolved?'Resolved':q.thread.length>0?'In Discussion':'Pending';
+  const badge=document.getElementById('tm-badge');
+  badge.className='q-badge '+sc;
+  badge.textContent=sl;
+
+  renderThreadMessages(q);
+  renderFooter(q);
+  syncWhoUI();
+
+  document.getElementById('thread-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  setTimeout(()=>scrollThreadBottom(),80);
+  if(!q.resolved) setTimeout(()=>document.getElementById('tm-ta')?.focus(),120);
+}
+
+function closeThread(){
+  document.getElementById('thread-overlay').classList.remove('open');
+  document.body.style.overflow='';
+  openQid=null;
+}
+
+function handleOverlayClick(e){
+  if(e.target===document.getElementById('thread-overlay')) closeThread();
+}
+
+function renderThreadMessages(q){
+  const area=document.getElementById('tm-thread');
+  if(q.thread.length===0){
+    area.innerHTML=`<div class="thread-empty">No messages yet — start the conversation below.</div>`;
+    return;
+  }
+  let html='';
+  q.thread.forEach(m=>{
+    const init=m.role==='admin'?'ADM':'CLI';
+    const name=m.role==='admin'?'Admin':'Client';
+    const t=m.ts?fmtTime(m.ts):'';
+    html+=`<div class="msg ${m.role}">
+      <div class="msg-av">${init}</div>
+      <div class="msg-wrap">
+        <div class="msg-meta"><span class="msg-who">${name}</span><span>${t}</span></div>
+        <div class="msg-bub">${esc(m.text)}</div>
+      </div>
+    </div>`;
+  });
+  if(q.resolved){
+    html+=`<div class="res-mark">✅ Both parties reached agreement — marked as <strong>Resolved</strong></div>`;
+  }
+  area.innerHTML=html;
+}
+
+function renderFooter(q){
+  const replyBar=document.getElementById('tm-reply');
+  const resolveRow=document.getElementById('tm-resolve-row');
+  const hint=document.getElementById('tm-hint');
+  const resBtn=document.getElementById('tm-res-btn');
+
+  if(q.resolved){
+    replyBar.classList.add('disabled');
+    resolveRow.className='resolve-row resolved-state';
+    hint.innerHTML='✅ This question is <strong>Resolved</strong>';
+    resBtn.style.display='none';
+    // Show reopen button
+    let ropBtn=document.getElementById('tm-reopen-btn');
+    if(!ropBtn){
+      ropBtn=document.createElement('button');
+      ropBtn.id='tm-reopen-btn';
+      ropBtn.className='btn-rop';
+      ropBtn.textContent='↩ Reopen';
+      ropBtn.onclick=reopenQ;
+      resolveRow.appendChild(ropBtn);
+    } else { ropBtn.style.display=''; }
+  } else {
+    replyBar.classList.remove('disabled');
+    resolveRow.className='resolve-row';
+    const hasAdm=q.thread.some(m=>m.role==='admin');
+    const hasCli=q.thread.some(m=>m.role==='client');
+    const canResolve=hasAdm&&hasCli;
+    hint.innerHTML=canResolve
+      ?'Both sides have replied — ready to mark as <strong>Resolved</strong>'
+      :'Once both sides have replied, mark as <strong>Resolved</strong>';
+    resBtn.style.display='';
+    resBtn.disabled=!canResolve;
+    resBtn.title=canResolve?'':'Need at least one reply from both Admin and Client';
+    const ropBtn=document.getElementById('tm-reopen-btn');
+    if(ropBtn) ropBtn.style.display='none';
+  }
+}
+
+function scrollThreadBottom(){
+  const area=document.getElementById('tm-thread');
+  if(area) area.scrollTop=area.scrollHeight;
+}
+
+// ── SEND REPLY ────────────────────────────────────────────────────
+function handleKey(e){if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();sendReply();}}
+
+function sendReply(){
+  if(!openQid)return;
+  const ta=document.getElementById('tm-ta');
+  const text=ta.value.trim();
+  if(!text)return;
+  const q=questions.find(x=>x.id===openQid);
+  if(!q||q.resolved)return;
+
+  q.thread.push({role:currentRole,text,ts:new Date().toISOString()});
+  save();
+  ta.value='';
+
+  // Update thread view
+  renderThreadMessages(q);
+  renderFooter(q);
+  scrollThreadBottom();
+
+  // Update badge in modal header
+  const badge=document.getElementById('tm-badge');
+  badge.className='q-badge in-disc';
+  badge.textContent='In Discussion';
+
+  // Update card in list
+  const card=document.getElementById('card-'+openQid);
+  if(card){
+    const stage=q.stage;
+    const c=document.getElementById('qc-'+stage);
+    c.replaceChild(buildCard(q),card);
+  }
+  updateStageProg(q.stage);
+  updateGlobal();
+  updatePills();
+  renderOverview();
+  toast('Reply sent','ok');
+}
+
+// ── RESOLVE / REOPEN ──────────────────────────────────────────────
+function resolveQ(){
+  if(!openQid)return;
+  const q=questions.find(x=>x.id===openQid);
+  if(!q)return;
+  const hasAdm=q.thread.some(m=>m.role==='admin');
+  const hasCli=q.thread.some(m=>m.role==='client');
+  if(!hasAdm||!hasCli){toast('Need replies from both Admin and Client first','i');return;}
+  q.resolved=true; save();
+
+  renderThreadMessages(q);
+  renderFooter(q);
+
+  // Update badge in modal
+  const badge=document.getElementById('tm-badge');
+  badge.className='q-badge resolved';
+  badge.textContent='Resolved';
+
+  // Update card
+  const card=document.getElementById('card-'+openQid);
+  if(card){document.getElementById('qc-'+q.stage).replaceChild(buildCard(q),card);}
+  updateStageProg(q.stage);updateGlobal();updatePills();renderOverview();
+  toast('Question resolved ✅','ok');
+}
+
+function reopenQ(){
+  if(!openQid)return;
+  const q=questions.find(x=>x.id===openQid);
+  if(!q)return;
+  q.resolved=false; save();
+
+  renderThreadMessages(q);
+  renderFooter(q);
+
+  const badge=document.getElementById('tm-badge');
+  badge.className='q-badge in-disc';
+  badge.textContent='In Discussion';
+
+  const card=document.getElementById('card-'+openQid);
+  if(card){document.getElementById('qc-'+q.stage).replaceChild(buildCard(q),card);}
+  updateStageProg(q.stage);updateGlobal();updatePills();renderOverview();
+  toast('Question reopened','i');
+}
+
+// ── PROGRESS ──────────────────────────────────────────────────────
+function updateStageProg(stage){
+  const sq=questions.filter(q=>q.stage===stage);
+  const done=sq.filter(q=>q.resolved).length;
+  const pct=sq.length?Math.round(done/sq.length*100):0;
+  const d=document.getElementById(stage+'-d');
+  const b=document.getElementById(stage+'-bar');
+  const p=document.getElementById(stage+'-pct');
+  if(d)d.textContent=done;
+  if(b)b.style.width=pct+'%';
+  if(p)p.textContent=pct+'%';
+}
+function updateGlobal(){
+  const done=questions.filter(q=>q.resolved).length;
+  const tot=questions.length;
+  const pct=tot?Math.round(done/tot*100):0;
+  document.getElementById('overall-num').innerHTML=`${done} <span>/ ${tot} resolved</span>`;
+  document.getElementById('overall-bar').style.width=pct+'%';
+}
+function updatePills(){
+  ['s1','s2','s3','s4','s5','s6'].forEach(stage=>{
+    const sq=questions.filter(q=>q.stage===stage);
+    const done=sq.filter(q=>q.resolved).length;
+    const p=document.getElementById('pill-'+stage);
+    if(!p)return;
+    p.textContent=done+'/'+sq.length;
+    p.className='npill'+(done===sq.length?' done':done>0?' part':'');
+  });
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────────────
+function renderOverview(){
+  const tot=questions.length;
+  const res=questions.filter(q=>q.resolved).length;
+  const disc=questions.filter(q=>!q.resolved&&q.thread.length>0).length;
+  const pend=tot-res-disc;
+  document.getElementById('ov-total').textContent=tot;
+  document.getElementById('ov-res').textContent=res;
+  document.getElementById('ov-disc').textContent=disc;
+  document.getElementById('ov-pend').textContent=pend;
+  document.getElementById('ov-date').textContent=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('ov-role').textContent=currentRole==='admin'?'Admin':'Client';
+
+  const tbody=document.getElementById('sst-body');
+  tbody.innerHTML='';
+  Object.entries(SMETA).forEach(([key,st])=>{
+    const sq=questions.filter(q=>q.stage===key);
+    const done=sq.filter(q=>q.resolved).length;
+    const pct=sq.length?Math.round(done/sq.length*100):0;
+    const sn=key.replace('s','');
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-weight:500">${st.emoji} Stage ${sn} — ${st.label}</td>
+      <td style="color:var(--text2)">${done} / ${sq.length}</td>
+      <td><span style="font-size:11px;color:var(--text3)">${pct}%</span><div class="sst-mini"><div class="sst-mini-f" style="width:${pct}%"></div></div></td>
+      <td><span class="sst-go" onclick="showStage('${key}',null)">View →</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── ADD QUESTION ──────────────────────────────────────────────────
+function openAddModal(){document.getElementById('add-overlay').classList.add('open');}
+function closeAddModal(){document.getElementById('add-overlay').classList.remove('open');document.getElementById('m-q').value='';document.getElementById('m-msg').value='';}
+document.getElementById('add-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('add-overlay'))closeAddModal();});
+
+function addQuestion(){
+  const stage=document.getElementById('m-stage').value;
+  const text=document.getElementById('m-q').value.trim();
+  const msg=document.getElementById('m-msg').value.trim();
+  if(!text){toast('Please enter a question','i');return;}
+  const sq=questions.filter(q=>q.stage===stage);
+  const sn=stage.replace('s','');
+  const id=`q${sn}.${sq.length+1}-${Date.now()}`;
+  const num=`Q${sn}.${sq.length+1}*`;
+  const thread=msg?[{role:currentRole,text:msg,ts:new Date().toISOString()}]:[];
+  questions.push({id,stage,num,text,thread,resolved:false});
+  save();renderStage(stage);updateGlobal();updatePills();renderOverview();
+  closeAddModal();showStage(stage,null);toast('Question added','ok');
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────
+function exportMD(){
+  let md=`# QA Dashboard — Chat Monitoring & Analysis\n**Exported:** ${new Date().toLocaleDateString('en-GB')}\n\n---\n\n`;
+  Object.entries(SMETA).forEach(([key,st])=>{
+    const sq=questions.filter(q=>q.stage===key);
+    const done=sq.filter(q=>q.resolved).length;
+    md+=`## ${st.emoji} ${st.full}\n*${done}/${sq.length} resolved*\n\n---\n\n`;
+    sq.forEach(q=>{
+      md+=`### ${q.num} — ${q.text}\n**Status:** ${q.resolved?'✅ Resolved':'🟡 Pending'}\n\n`;
+      if(q.thread.length>0){
+        md+=`**Thread:**\n\n`;
+        q.thread.forEach(m=>{
+          const who=m.role==='admin'?'👤 Admin':'🏢 Client';
+          md+=`> **${who}** _(${fmtTime(m.ts)})_\n>\n`;
+          m.text.split('\n').forEach(l=>md+=`> ${l}\n`);
+          md+=`\n`;
+        });
+      }
+      md+=`---\n\n`;
+    });
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([md],{type:'text/markdown'}));
+  a.download='QA-Dashboard-Export.md';a.click();
+  toast('Exported','ok');
+}
+
+// ── NAV ───────────────────────────────────────────────────────────
+function showStage(id,navEl){
+  document.querySelectorAll('.stage-blk').forEach(el=>el.classList.remove('active'));
+  document.getElementById('stage-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const t=navEl||document.querySelector(`.nav-item[data-stage="${id}"]`);
+  if(t)t.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function fmtTime(iso){try{return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+function esc(s){if(!s)return '';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,type='i'){
+  const el=document.createElement('div');
+  el.className='toast';
+  el.innerHTML=`<span class="${type==='ok'?'ti-ok':'ti-i'}">${type==='ok'?'✓':'ℹ'}</span> ${msg}`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+loadState();
+renderAll();
+</script>
+</body>
+</html>
