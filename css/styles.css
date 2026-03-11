@@ -295,6 +295,7 @@ main{margin-left:var(--sw);flex:1;padding:32px 40px;max-width:980px}
   padding:13px 16px;cursor:pointer;transition:all .15s;margin-bottom:8px;
 }
 .msn-item:hover{background:var(--bg3);border-color:#3a4560}
+.msn-item.active{border-color:var(--accent);background:rgba(99,102,241,.08)}
 .msn-l{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
 .msn-ic{width:28px;height:28px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px}
 .msn-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--bg3);color:var(--text3)}
@@ -307,9 +308,8 @@ main{margin-left:var(--sw);flex:1;padding:32px 40px;max-width:980px}
   .badge-v{display:none}
   .logo-text{display:none}
 
-  /* Hide Stage Breakdown table, show mobile nav instead */
-  .stage-breakdown-hdr{display:none}
-  .stage-breakdown-tbl{display:none}
+  /* Hide metadata info box; keep Stage Breakdown visible */
+  .ov-meta{display:none}
   .mobile-stage-nav{display:block}
 
   /* Sidebar becomes a slide-in drawer */

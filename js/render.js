@@ -169,6 +169,7 @@ function renderOverview() {
       const pillClass = done === sq.length ? 'done' : done > 0 ? 'part' : '';
       const item = document.createElement('div');
       item.className = 'msn-item';
+      item.dataset.stage = st.id;
       item.onclick = () => showStage(st.id, null);
       item.innerHTML = `
         <div class="msn-l">
@@ -190,6 +191,9 @@ function showStage(id, navEl) {
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
   const t = navEl || document.querySelector(`.nav-item[data-stage="${id}"]`);
   if (t) t.classList.add('active');
+  document.querySelectorAll('.msn-item').forEach(el => el.classList.remove('active'));
+  const msn = document.querySelector(`.msn-item[data-stage="${id}"]`);
+  if (msn) msn.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (window.innerWidth <= 768) closeSidebar();
 }
