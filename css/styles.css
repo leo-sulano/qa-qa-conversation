@@ -308,7 +308,7 @@ main{margin-left:var(--sw);flex:1;padding:32px 40px}
 .sb-overlay.open{display:block}
 
 /* Mobile stage nav (hidden on desktop) */
-.mobile-stage-nav{display:none}
+.mobile-stage-nav{display:none;margin-top:30px}
 .msn-item{
   display:flex;align-items:center;justify-content:space-between;
   background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
