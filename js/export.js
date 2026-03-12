@@ -5,7 +5,7 @@ function exportMD() {
   stages.forEach((st, i) => {
     const sq   = questions.filter(q => q.stage === st.id);
     const done = sq.filter(q => q.resolved).length;
-    md += `## ${st.emoji} Stage ${i + 1} — ${st.label}\n*${done}/${sq.length} resolved*\n\n---\n\n`;
+    md += `## ${st.emoji} Section ${i + 1} — ${st.label}\n*${done}/${sq.length} resolved*\n\n---\n\n`;
     sq.forEach(q => {
       md += `### ${q.num} — ${q.text}\n**Status:** ${q.resolved ? '✅ Resolved' : '🟡 Pending'}\n\n`;
       if (q.thread.length > 0) {

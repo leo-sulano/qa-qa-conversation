@@ -20,7 +20,7 @@ function renderSidebar() {
   const addBtn = document.createElement('div');
   addBtn.className = 'nav-add-stage';
   addBtn.onclick = openStageModal;
-  addBtn.innerHTML = `<span style="font-size:16px;line-height:1">＋</span> Add Stage`;
+  addBtn.innerHTML = `<span style="font-size:16px;line-height:1">＋</span> Add Section`;
   aside.appendChild(addBtn);
 
   updatePills();
@@ -39,11 +39,11 @@ function renderStageBlocks() {
     div.innerHTML = `
       <div class="stage-hdr">
         <div>
-          <div class="s-ey">${esc(st.emoji)} Stage ${i + 1}</div>
+          <div class="s-ey">${esc(st.emoji)} Section ${i + 1}</div>
           <div class="s-ti">${esc(st.label)}</div>
           <div class="s-sub">${sq.length} question${sq.length !== 1 ? 's' : ''} — click any to open the conversation thread</div>
         </div>
-        <button class="btn-del-stage" onclick="deleteStage('${st.id}')" title="Delete stage">🗑 Delete Stage</button>
+        <button class="btn-del-stage" onclick="deleteStage('${st.id}')" title="Delete section">🗑 Delete Section</button>
       </div>
       <div class="s-prog">
         <span class="spt"><strong id="${st.id}-d">0</strong> of ${sq.length} resolved</span>
@@ -276,7 +276,7 @@ function renderOverview() {
     const pct = sq.length ? Math.round(done / sq.length * 100) : 0;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="font-weight:500">${st.emoji} Stage ${i + 1} — ${esc(st.label)}</td>
+      <td style="font-weight:500">${st.emoji} Section ${i + 1} — ${esc(st.label)}</td>
       <td style="color:var(--text2)">${done} / ${sq.length}</td>
       <td><span style="font-size:11px;color:var(--text3)">${pct}%</span><div class="sst-mini"><div class="sst-mini-f" style="width:${pct}%"></div></div></td>
       <td><span class="sst-go" onclick="showStage('${st.id}',null)">View →</span></td>`;
@@ -298,7 +298,7 @@ function renderOverview() {
       item.innerHTML = `
         <div class="msn-l">
           <div class="msn-ic">${st.emoji}</div>
-          <span>Stage ${i + 1} — ${esc(st.label)}</span>
+          <span>Section ${i + 1} — ${esc(st.label)}</span>
         </div>
         <span class="msn-pill ${pillClass}">${done}/${sq.length}</span>`;
       msnEl.appendChild(item);

@@ -14,7 +14,7 @@ function closeStageModal() {
 function addStage() {
   const label = document.getElementById('sm-label').value.trim();
   const emoji = document.getElementById('sm-emoji').value.trim() || '📁';
-  if (!label) { toast('Please enter a stage name', 'i'); return; }
+  if (!label) { toast('Please enter a section name', 'i'); return; }
 
   const id        = 'stage-' + Date.now();
   const sortOrder = stages.length + 1;
@@ -29,7 +29,7 @@ function addStage() {
   renderOverview();
   closeStageModal();
   showStage(id, null);
-  toast('Stage added', 'ok');
+  toast('Section added', 'ok');
 }
 
 function deleteStage(stageId) {
@@ -37,8 +37,8 @@ function deleteStage(stageId) {
   if (!st) return;
   const qCount = questions.filter(q => q.stage === stageId).length;
   const msg = qCount > 0
-    ? `Delete stage "${st.label}"?\n\nThis will also delete ${qCount} question${qCount > 1 ? 's' : ''} inside it.\n\nThis cannot be undone.`
-    : `Delete stage "${st.label}"?\n\nThis cannot be undone.`;
+    ? `Delete section "${st.label}"?\n\nThis will also delete ${qCount} question${qCount > 1 ? 's' : ''} inside it.\n\nThis cannot be undone.`
+    : `Delete section "${st.label}"?\n\nThis cannot be undone.`;
   if (!confirm(msg)) return;
 
   questions = questions.filter(q => q.stage !== stageId);
@@ -51,5 +51,5 @@ function deleteStage(stageId) {
   updateGlobal();
   renderOverview();
   showStage('overview', null);
-  toast(`Stage "${st.label}" deleted`, 'i');
+  toast(`Section "${st.label}" deleted`, 'i');
 }

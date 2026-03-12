@@ -325,7 +325,11 @@ main{margin-left:var(--sw);flex:1;padding:32px 40px;max-width:980px}
   .badge-v{display:none}
   .logo-text{display:none}
   .hdr-r .btn-sm{display:none}
-  .mobile-actions{display:flex;gap:8px;margin-bottom:16px}
+  .mobile-actions{display:flex;gap:8px;margin-bottom:16px;justify-content:space-between}
+
+  /* Logo sits beside hamburger on the left */
+  header{justify-content:flex-start;gap:10px}
+  .hdr-r{margin-left:auto}
 
   /* Hide metadata info box; keep Stage Breakdown visible */
   .ov-meta{display:none}

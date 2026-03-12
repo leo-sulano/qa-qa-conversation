@@ -6,7 +6,7 @@ function openAddModal() {
   stages.forEach((st, i) => {
     const opt = document.createElement('option');
     opt.value = st.id;
-    opt.textContent = `Stage ${i + 1} — ${st.label}`;
+    opt.textContent = `Section ${i + 1} — ${st.label}`;
     sel.appendChild(opt);
   });
   document.getElementById('add-overlay').classList.add('open');
