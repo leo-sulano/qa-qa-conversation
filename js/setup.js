@@ -104,6 +104,14 @@ function closeImportModal() {
   document.getElementById('file-name').textContent = 'No file selected';
   document.getElementById('import-text').value = '';
   uploadedFileContent = null;
+  
+  // Clear analysis result
+  const res = document.getElementById('ai-res-box');
+  if (res) res.remove();
+  
+  // Reset button text
+  const btn = document.querySelector('#import-overlay .btn-p');
+  if (btn) btn.textContent = 'Run Analysis';
 }
 
 function switchImportTab(mode) {
@@ -136,17 +144,111 @@ function handleFileSelect(input) {
 // ── AI ANALYSIS PLACEHOLDER ───────────────────────────────────────
 
 async function analyzeConversation(conversationText) {
-  // ---------------------------------------------------------
-  // PLACEHOLDER FOR OPENAI API
-  // ---------------------------------------------------------
-  console.log("Analyze requested for:", conversationText.substring(0, 50) + "...");
+  let apiKey = localStorage.getItem('openai_api_key');
 
-  // Simulate API delay
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({ status: 'success', summary: 'Analysis complete.' });
-    }, 1500);
-  });
+  if (!apiKey) {
+    apiKey = prompt("Enter your OpenAI API Key for analysis:\n(It will be stored locally in your browser)");
+    if (!apiKey) throw new Error("API Key is required.");
+    localStorage.setItem('openai_api_key', apiKey);
+  }
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: "You are a Customer Support QA Analyst. Analyze the following conversation transcript. Provide a concise summary including:\n1. The core issue.\n2. Resolution status.\n3. Agent performance notes.\n4. Key insights.\n\nFormat the output using clear sections and bullet points." },
+          { role: "user", content: conversationText.substring(0, 25000) } // Truncate to avoid payload limits
+        ],
+        temperature: 0.5
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (data.error && data.error.code === 'invalid_api_key') {
+        localStorage.removeItem('openai_api_key');
+      }
+      throw new Error(data.error?.message || 'OpenAI API request failed');
+    }
+
+    return { status: 'success', summary: data.choices[0].message.content };
+  } catch (err) {
+    throw err;
+  }
+}
+
+function showAnalysisResult(data) {
+  // Remove existing if any
+  const existing = document.getElementById('ai-res-box');
+  if (existing) existing.remove();
+
+  // Store for application
+  window.aiAnalysisData = data.summary;
+
+  const box = document.createElement('div');
+  box.id = 'ai-res-box';
+  box.className = 'ai-res-box';
+  box.innerHTML = `
+    <div class="ai-res-h">✨ Analysis Result</div>
+    <div class="ai-res-content">${data.summary}</div>
+    <div style="margin-top:12px;text-align:right">
+      <button class="btn-sm btn-p" onclick="applyAnalysisToDashboard()">Apply to Dashboard</button>
+    </div>`;
+
+  // Insert into active tab content at the top
+  const activeTab = document.querySelector('.tab-content.active');
+  if (activeTab) activeTab.insertBefore(box, activeTab.firstChild);
+  else document.querySelector('.modal-body')?.prepend(box);
+}
+
+function applyAnalysisToDashboard() {
+  if (!window.aiAnalysisData) return;
+
+  // Default to 's3' (AI Monitoring) or fallback to first stage
+  let targetStage = stages.find(s => s.id === 's3') || stages[0];
+  if (!targetStage) {
+    if (typeof toast === 'function') toast('No sections available', 'i');
+    return;
+  }
+
+  const sq = questions.filter(q => q.stage === targetStage.id);
+  const stIdx = stages.findIndex(s => s.id === targetStage.id);
+  
+  const id = `q-${targetStage.id}-${Date.now()}`;
+  const num = `Q${stIdx + 1}.${sq.length + 1} (AI)`;
+  const role = (typeof currentRole !== 'undefined') ? currentRole : 'admin';
+  
+  const newQ = {
+    id,
+    stage: targetStage.id,
+    num,
+    text: `AI Analysis: ${new Date().toLocaleTimeString()}`,
+    resolved: false,
+    thread: [{ role, text: window.aiAnalysisData, ts: new Date().toISOString() }]
+  };
+
+  questions.push(newQ);
+  save();
+  
+  if (typeof dbInsertQuestion === 'function') dbInsertQuestion(newQ);
+  if (typeof dbInsertMessage === 'function') dbInsertMessage(id, role, window.aiAnalysisData);
+
+  renderStageBlocks();
+  stages.forEach(st => renderStage(st.id));
+  updateGlobal();
+  updatePills();
+  renderOverview();
+
+  closeImportModal();
+  showStage(targetStage.id);
+  toast(`Added analysis to ${targetStage.label}`, 'ok');
 }
 
 async function runAnalysis() {
@@ -165,19 +267,23 @@ async function runAnalysis() {
   }
 
   const btn = document.querySelector('#import-overlay .btn-p');
-  const originalText = btn.textContent;
+  const originalText = btn.dataset.defaultText || btn.textContent;
+  if (!btn.dataset.defaultText) btn.dataset.defaultText = originalText;
+
   btn.textContent = 'Analyzing...';
   btn.disabled = true;
 
   try {
-    await analyzeConversation(textToAnalyze);
+    const result = await analyzeConversation(textToAnalyze);
     if (typeof toast === 'function') toast('Conversation analyzed successfully', 'ok');
-    closeImportModal();
+    
+    showAnalysisResult(result);
+    btn.textContent = 'Re-analyze';
   } catch (err) {
     console.error(err);
     if (typeof toast === 'function') toast('Analysis failed', 'i');
-  } finally {
     btn.textContent = originalText;
+  } finally {
     btn.disabled = false;
   }
 }
