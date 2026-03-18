@@ -286,7 +286,7 @@ async function runAnalysis() {
     if (err instanceof TypeError) { // This often indicates a network error
       errorMessage = 'Analysis failed. Could not connect to the backend. Is the server running?';
     } else if (err.message) {
-      errorMessage = `Analysis failed: ${err.message}`;
+      errorMessage = err.message.startsWith('Analysis failed:') ? err.message : `Analysis failed: ${err.message}`;
     }
     if (typeof toast === 'function') toast(errorMessage, 'i');
     btn.textContent = originalText;
