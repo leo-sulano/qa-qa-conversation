@@ -286,14 +286,9 @@ function renderOverview() {
     tbody.appendChild(tr);
   });
 
-  // Conversations row in section breakdown
-  const convTr = document.createElement('tr');
-  convTr.innerHTML = `
-    <td style="font-weight:500">🔬 Conversation Analysis</td>
-    <td style="color:var(--text2)">${conversations.length} total</td>
-    <td><span style="font-size:11px;color:var(--text3)">${conversations.length > 0 ? conversations.length + ' analyzed' : 'None yet'}</span></td>
-    <td><span class="sst-go" onclick="showConversations(null)">View →</span></td>`;
-  tbody.appendChild(convTr);
+  // Update conversation analysis summary block
+  const convCount = document.getElementById('ov-conv-count');
+  if (convCount) convCount.textContent = conversations.length === 0 ? 'None yet' : conversations.length + ' analyzed';
 
   // Mobile stage navigation cards
   const msnEl = document.getElementById('mobile-stage-nav');
