@@ -315,6 +315,18 @@ function renderOverview() {
         <span class="msn-pill ${pillClass}">${done}/${sq.length}</span>`;
       msnEl.appendChild(item);
     });
+
+    // Conversation Analysis card
+    const convItem = document.createElement('div');
+    convItem.className = 'msn-item msn-conv';
+    convItem.onclick = () => showConversations(null);
+    convItem.innerHTML = `
+      <div class="msn-l">
+        <div class="msn-ic">🔬</div>
+        <span>Conversation Analysis</span>
+      </div>
+      <span class="msn-pill ${conversations.length > 0 ? 'part' : ''}">${conversations.length}</span>`;
+    msnEl.appendChild(convItem);
   }
 }
 
