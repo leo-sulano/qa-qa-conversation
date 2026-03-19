@@ -518,7 +518,7 @@ main{margin-left:var(--sw);flex:1;padding:32px 40px}
 .conv-card-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 .conv-del-btn{background:rgba(239,68,68,.08);color:var(--red);border:1px solid rgba(239,68,68,.2);font-size:11px;font-weight:600;padding:5px 10px;border-radius:7px;cursor:pointer;transition:all .15s}
 .conv-del-btn:hover{background:rgba(239,68,68,.18)}
-.conv-reanalyze-btn{background:rgba(124,58,237,.1);color:var(--accent2);border:1px solid rgba(124,58,237,.25);font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;cursor:pointer;transition:all .15s}
+.conv-reanalyze-btn{background:rgba(124,58,237,.1);color:#fff;border:1px solid rgba(124,58,237,.25);font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;cursor:pointer;transition:all .15s}
 .conv-reanalyze-btn:hover{background:rgba(124,58,237,.2)}
 .conv-reanalyze-btn:disabled{opacity:.5;cursor:not-allowed}
 .conv-note.system-note{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.2)}
