@@ -46,7 +46,7 @@
       <span class="npill" id="pill-conversations">0</span>
     </div>
     <div class="nav-item" data-stage="prompts" onclick="showPromptLibrary(this)">
-      <div class="nav-l"><div class="nav-ic">📝</div><span class="nav-label">Prompt Library</span></div>
+      <div class="nav-l"><div class="nav-ic">📝</div><span class="nav-label">Prompt History</span></div>
     </div>
     <div class="sb-div"></div>
     <div class="sb-lbl">Q&amp;A Sections</div>
@@ -115,9 +115,9 @@
         <div>
           <div class="s-ey">🧠 Analysis</div>
           <div class="s-ti">Conversation Analysis</div>
-          <div class="s-sub">AI-analyzed conversations — uses the active prompt from Prompt Library</div>
+          <div class="s-sub">AI-analyzed conversations — uses the active prompt from Prompt History</div>
         </div>
-        <button class="btn btn-p" onclick="openRunAnalyzeModal()">✨ Run Analyze</button>
+        <button class="btn btn-p" id="conv-run-qa-btn" onclick="openRunAnalyzeModal()">✨ Run QA</button>
       </div>
       <div id="conv-list"></div>
     </div>
@@ -127,7 +127,7 @@
       <div class="stage-hdr">
         <div>
           <div class="s-ey">📝 Prompts</div>
-          <div class="s-ti">Prompt Library</div>
+          <div class="s-ti">Prompt History</div>
           <div class="s-sub">View, edit and manage the AI analysis prompt</div>
         </div>
       </div>
@@ -287,11 +287,11 @@
   </div>
 </div>
 
-<!-- ── Run Analyze Modal ──────────────────────────────────────── -->
+<!-- ── Run QA Modal ───────────────────────────────────────────── -->
 <div class="add-overlay" id="run-analyze-overlay">
   <div class="add-modal ra-modal">
     <div class="ra-modal-head">
-      <div class="add-title" style="margin-bottom:0">✨ Run Analyze</div>
+      <div class="add-title" style="margin-bottom:0">✨ Run QA</div>
       <button class="ra-close-btn" onclick="closeRunAnalyzeModal()" title="Close">✕</button>
     </div>
     <p class="ra-subtitle">Choose a conversation to test against the active prompt. Result is <strong>not saved</strong>.</p>

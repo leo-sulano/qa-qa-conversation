@@ -161,7 +161,7 @@ function renderPromptLibrary() {
         ${mainHTML}
       </div>
       <div class="pl-sidebar">
-        <div class="pl-section-title">📚 Prompt History</div>
+        <div class="pl-section-title">📚 History</div>
         <div class="pl-hist-list">${historyHTML}</div>
       </div>
     </div>`;
@@ -241,11 +241,12 @@ function useHistoryPrompt(id) {
 let _raSelectedId = null;
 let _raLastSelectedId = null; // persists after modal close — used for auto-rerun on prompt save
 
-function openRunAnalyzeModal() {
+function openRunAnalyzeModal(preSelectId) {
   const overlay = document.getElementById('run-analyze-overlay');
   if (!overlay) return;
 
-  _raSelectedId = null;
+  _raSelectedId = preSelectId || null;
+  if (_raSelectedId) _raLastSelectedId = _raSelectedId;
 
   // Show active prompt name
   const nameEl = document.getElementById('ra-prompt-name');
@@ -255,12 +256,22 @@ function openRunAnalyzeModal() {
   const resultEl = document.getElementById('ra-result');
   if (resultEl) { resultEl.style.display = 'none'; resultEl.innerHTML = ''; }
 
-  // Reset button
-  const btn = document.getElementById('ra-run-btn');
-  if (btn) { btn.textContent = '▶ Analyze'; btn.disabled = true; }
-
-  // Populate conversation list
+  // Populate conversation list first, then set button state
   _renderRaConvList();
+
+  // If pre-selected, highlight and enable button
+  if (_raSelectedId) {
+    setTimeout(() => {
+      document.querySelectorAll('.ra-conv-item').forEach(el => el.classList.remove('selected'));
+      const item = document.getElementById('ra-item-' + _raSelectedId);
+      if (item) item.classList.add('selected');
+      const btn = document.getElementById('ra-run-btn');
+      if (btn) { btn.textContent = '▶ Analyze'; btn.disabled = false; }
+    }, 30);
+  } else {
+    const btn = document.getElementById('ra-run-btn');
+    if (btn) { btn.textContent = '▶ Analyze'; btn.disabled = true; }
+  }
 
   overlay.classList.add('open');
 }
