@@ -219,6 +219,7 @@ function savePromptEdit() {
   _viewingPromptId = null;
   renderPromptLibrary();
   toast('Prompt saved and activated', 'ok');
+  _autoRerunIfConvSelected();
 }
 
 function useHistoryPrompt(id) {
@@ -232,11 +233,13 @@ function useHistoryPrompt(id) {
   _viewingPromptId = null;
   renderPromptLibrary();
   toast(`"${prompt.name}" is now active`, 'ok');
+  _autoRerunIfConvSelected();
 }
 
 // ── RUN ANALYZE MODAL ──────────────────────────────────────────────
 
 let _raSelectedId = null;
+let _raLastSelectedId = null; // persists after modal close — used for auto-rerun on prompt save
 
 function openRunAnalyzeModal() {
   const overlay = document.getElementById('run-analyze-overlay');
@@ -291,6 +294,7 @@ function _renderRaConvList() {
 
 function selectRaConv(id) {
   _raSelectedId = id;
+  _raLastSelectedId = id;
 
   // Highlight selected
   document.querySelectorAll('.ra-conv-item').forEach(el => el.classList.remove('selected'));
@@ -375,6 +379,34 @@ function buildTestResultHTML(convTitle, d) {
     </div>
     ${rows}
   </div>`;
+}
+
+// ── AUTO-RERUN ─────────────────────────────────────────────────────
+// If the user saved/activated a prompt and had previously run analyze
+// on a conversation, auto-open the modal and re-run with the new prompt.
+
+function _autoRerunIfConvSelected() {
+  if (!_raLastSelectedId) return;
+  if (!conversations || !conversations.find(c => c.id === _raLastSelectedId)) return;
+
+  // Small delay so the prompt-save toast is visible first
+  setTimeout(() => {
+    _raSelectedId = _raLastSelectedId;
+    openRunAnalyzeModal();
+
+    // Mark the conversation as selected in the list
+    setTimeout(() => {
+      document.querySelectorAll('.ra-conv-item').forEach(el => el.classList.remove('selected'));
+      const item = document.getElementById('ra-item-' + _raSelectedId);
+      if (item) item.classList.add('selected');
+
+      const btn = document.getElementById('ra-run-btn');
+      if (btn) btn.disabled = false;
+
+      // Auto-run
+      runPromptTest();
+    }, 80);
+  }, 400);
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────────

@@ -290,7 +290,10 @@
 <!-- ── Run Analyze Modal ──────────────────────────────────────── -->
 <div class="add-overlay" id="run-analyze-overlay">
   <div class="add-modal ra-modal">
-    <div class="add-title">✨ Run Analyze</div>
+    <div class="ra-modal-head">
+      <div class="add-title" style="margin-bottom:0">✨ Run Analyze</div>
+      <button class="ra-close-btn" onclick="closeRunAnalyzeModal()" title="Close">✕</button>
+    </div>
     <p class="ra-subtitle">Choose a conversation to test against the active prompt. Result is <strong>not saved</strong>.</p>
 
     <div class="ra-prompt-bar">
@@ -302,8 +305,7 @@
     <label class="flbl" style="display:block;margin-bottom:6px">Select Conversation</label>
     <div class="ra-conv-list" id="ra-conv-list"></div>
 
-    <div class="modal-btns" style="margin-bottom:0;margin-top:16px">
-      <button class="btn btn-g" onclick="closeRunAnalyzeModal()">Cancel</button>
+    <div class="modal-btns" style="margin-bottom:0;margin-top:16px;justify-content:flex-end">
       <button class="btn btn-p" id="ra-run-btn" onclick="runPromptTest()" disabled>▶ Analyze</button>
     </div>
 
