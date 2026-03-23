@@ -18,10 +18,6 @@ function _renderConvList() {
   if (!container) return;
   container.innerHTML = '';
 
-  // Show/hide header Run QA button
-  const hdrBtn = document.getElementById('conv-run-qa-btn');
-  if (hdrBtn) hdrBtn.style.display = '';
-
   const pill = document.getElementById('pill-conversations');
 
   if (conversations.length === 0) {

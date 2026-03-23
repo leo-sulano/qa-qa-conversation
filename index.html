@@ -19,8 +19,8 @@
     </div>
   </div>
   <div class="hdr-r">
-    <button class="btn btn-g btn-sm desktop-only" onclick="openAddModal()">Add Question</button>
-    <button class="btn btn-p btn-sm desktop-only" onclick="exportMD()">↓ Export</button>
+    <button class="btn btn-g btn-sm desktop-only" onclick="openAddModal()" style="display:none">Add Question</button>
+    <button class="btn btn-p btn-sm desktop-only" onclick="exportMD()" style="display:none">↓ Export</button>
     <button class="btn btn-p btn-sm" style="background:var(--accent2)" onclick="openImportModal()">Add Conversation</button>
     <div id="user-display" class="user-display hidden"></div>
   </div>
@@ -48,15 +48,15 @@
     <div class="nav-item" data-stage="prompts" onclick="showPromptLibrary(this)">
       <div class="nav-l"><div class="nav-ic">📝</div><span class="nav-label">Prompt History</span></div>
     </div>
-    <div class="sb-div"></div>
-    <div class="sb-lbl">Q&amp;A Sections</div>
+    <div class="sb-div" style="display:none"></div>
+    <div class="sb-lbl" style="display:none">Q&amp;A Sections</div>
     <!-- dynamic stage nav rendered by renderSidebar() -->
-    <div id="sidebar-nav"></div>
+    <div id="sidebar-nav" style="display:none"></div>
   </aside>
 
   <main>
     <!-- Mobile action bar: Export + Add Question (hidden on desktop) -->
-    <div class="mobile-actions">
+    <div class="mobile-actions" style="display:none">
       <button class="btn btn-g btn-sm" onclick="openAddModal()">＋ Add Question</button>
       <button class="btn btn-p btn-sm" onclick="exportMD()">↓ Export</button>
     </div>
@@ -117,7 +117,6 @@
           <div class="s-ti">Conversation Analysis</div>
           <div class="s-sub">AI-analyzed conversations — uses the active prompt from Prompt History</div>
         </div>
-        <button class="btn btn-p" id="conv-run-qa-btn" onclick="openRunAnalyzeModal()">✨ Run QA</button>
       </div>
       <div id="conv-list"></div>
     </div>
