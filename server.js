@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import analyzeHandler from './analyze.js';
-import liveAnalyzeHandler from './live-analyze.js';
 
 dotenv.config();
 
@@ -16,8 +15,8 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(__dirname)); // Serves index.html, css, js
 
+// Unified endpoint handles both single and batch (fetchIntercom: true) analysis
 app.post('/api/analyze', analyzeHandler);
-app.post('/api/analyze-recent', liveAnalyzeHandler);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
