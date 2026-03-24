@@ -7,7 +7,8 @@ function setRole(r) {
   const cli = document.getElementById('role-cli');
   if (adm) adm.className = 'role-btn' + (r === 'admin' ? ' a-adm' : '');
   if (cli) cli.className = 'role-btn' + (r === 'client' ? ' a-cli' : '');
-  document.getElementById('ov-role').textContent = r === 'admin' ? 'Admin' : 'Client';
+  const ovRole = document.getElementById('ov-role');
+  if (ovRole) ovRole.textContent = r === 'admin' ? 'Admin' : 'Client';
   syncWhoUI();
 }
 

@@ -49,6 +49,13 @@ async function loadState() {
             .map(n => ({ author: n.author, text: n.text, ts: n.created_at, system: n.is_system })),
         }));
       }
+      // If Supabase returned no conversations (empty table or error), fall back to localStorage
+      if (conversations.length === 0) {
+        try {
+          const lc = localStorage.getItem('qa-conv-v1');
+          if (lc) conversations = JSON.parse(lc);
+        } catch (_) {}
+      }
       console.info('[Supabase] Loaded', stages.length, 'stages,', questions.length, 'questions,', conversations.length, 'conversations');
       return;
     } catch (e) {
@@ -88,10 +95,11 @@ function initDefault() {
 }
 
 // Persists role locally; full-saves to localStorage when Supabase is not active.
+// Always backs up conversations to localStorage so they survive Supabase failures.
 function save() {
   localStorage.setItem('qa-role', currentRole);
+  localStorage.setItem('qa-conv-v1', JSON.stringify(conversations));
   if (!window.db) {
-    localStorage.setItem('qa-conv-v1', JSON.stringify(conversations));
     localStorage.setItem(SK, JSON.stringify({ questions, stages, conversations, role: currentRole }));
   }
 }
