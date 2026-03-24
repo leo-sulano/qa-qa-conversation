@@ -3,7 +3,6 @@
  * Handles User Onboarding (Welcome Modal) and AI Import Logic.
  */
 
-let setupRole = null;
 let uploadedFileContent = null;
 
 // ── INITIALIZATION ────────────────────────────────────────────────
@@ -14,16 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function checkUserSession() {
   const user = localStorage.getItem('qa_user');
-  const role = localStorage.getItem('qa_role_pref');
 
-  if (user && role) {
+  if (user) {
     // User exists, show dashboard
-    updateUserDisplay(user, role);
-    
-    // Sync with app state if functions exist
-    if (typeof setRole === 'function') {
-      setRole(role);
-    }
     // Add the live analysis button now that we know the user is set up
     addLiveAnalysisButton();
   } else {
@@ -36,35 +28,12 @@ function addLiveAnalysisButton() {
   // Button removed from header
 }
 
-function updateUserDisplay(name, role) {
-  const disp = document.getElementById('user-display');
-  const label = role === 'admin' ? 'Admin' : 'User';
-  const icon = role === 'admin' ? '👤' : '🏢';
-  
-  disp.innerHTML = `${icon} ${esc(name)} <span style="opacity:0.5;margin:0 4px">|</span> ${label}`;
-  disp.classList.remove('hidden');
-
-  // Optionally hide the manual switcher if you want strict enforcement
-  // document.querySelector('.role-sw').style.display = 'none';
-}
-
 // ── WELCOME MODAL LOGIC ───────────────────────────────────────────
-
-function selectSetupRole(role, el) {
-  setupRole = role;
-  
-  // UI Toggle
-  document.querySelectorAll('.role-opt').forEach(opt => opt.classList.remove('selected'));
-  el.classList.add('selected');
-  
-  // Clear error
-  document.getElementById('err-role').classList.remove('vis');
-}
 
 function saveUserSetup() {
   const nameInput = document.getElementById('setup-name');
   const name = nameInput.value.trim();
-  
+
   let isValid = true;
 
   // Validation
@@ -75,27 +44,14 @@ function saveUserSetup() {
     document.getElementById('err-name').classList.remove('vis');
   }
 
-  if (!setupRole) {
-    document.getElementById('err-role').classList.add('vis');
-    isValid = false;
-  }
-
   if (!isValid) return;
 
   // Save to LocalStorage
   localStorage.setItem('qa_user', name);
-  localStorage.setItem('qa_role_pref', setupRole);
-
-  // Apply settings
-  updateUserDisplay(name, setupRole);
-  if (typeof setRole === 'function') {
-    setRole(setupRole);
-  }
 
   // Close Modal
   document.getElementById('welcome-overlay').classList.remove('open');
   if (typeof toast === 'function') toast(`Welcome, ${name}!`, 'ok');
-  
 }
 
 // ── IMPORT / AI MODAL LOGIC ───────────────────────────────────────

@@ -141,22 +141,7 @@
         <input type="text" class="finput" id="setup-name" placeholder="e.g. Alex" />
         <div class="err-msg" id="err-name">Name is required</div>
       </div>
-      
-      <div class="frow">
-        <label class="flbl">Role</label>
-        <div class="role-select" id="setup-role-group">
-          <div class="role-opt" onclick="selectSetupRole('admin', this)">
-            <div class="ro-ic">👤</div>
-            <div class="ro-t">Admin</div>
-          </div>
-          <div class="role-opt" onclick="selectSetupRole('client', this)">
-            <div class="ro-ic">🏢</div>
-            <div class="ro-t">User</div>
-          </div>
-        </div>
-        <div class="err-msg" id="err-role">Please select a role</div>
-      </div>
-      
+
       <button class="btn btn-p full-width" onclick="saveUserSetup()">Continue to Dashboard →</button>
     </div>
   </div>
