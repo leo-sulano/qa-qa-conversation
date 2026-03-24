@@ -351,10 +351,13 @@ function _buildCommentsList(c) {
   if (!c.notes || c.notes.length === 0) {
     return '<div class="conv-no-notes">No comments yet.</div>';
   }
-  return c.notes.map(n => {
+  const userNotes = c.notes.filter(n => !n.system);
+  if (userNotes.length === 0) {
+    return '<div class="conv-no-notes">No comments yet.</div>';
+  }
+  return userNotes.map(n => {
     const t = n.ts ? fmtTime(n.ts) : '';
-    const cls = n.system ? 'conv-note system-note' : 'conv-note';
-    return `<div class="${cls}">
+    return `<div class="conv-note">
       <div class="conv-note-meta">
         <span class="conv-note-author">${esc(n.author || 'Team')}</span>
         <span class="conv-note-ts">${t}</span>
@@ -366,71 +369,13 @@ function _buildCommentsList(c) {
 
 // ── RUN AGAIN ──────────────────────────────────────────────────────
 
-async function runAgainForConv(cid) {
+function runAgainForConv(cid) {
   const c = conversations.find(x => x.id === cid);
   if (!c || !c.original_text) { toast('No transcript available to analyze', 'i'); return; }
 
-  const btn = document.getElementById('run-again-btn-' + cid);
-  if (btn) { btn.textContent = 'Analyzing…'; btn.disabled = true; }
-
-  const analysisCol = document.getElementById('conv-analysis-col-' + cid);
-  if (analysisCol) analysisCol.innerHTML = '<div class="conv-analyzing-msg">⏳ Analyzing…</div>';
-
-  try {
-    const payload = { text: c.original_text };
-    if (typeof getActivePromptContent === 'function') payload.customSystemPrompt = getActivePromptContent();
-
-    const response = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const contentType = response.headers.get('content-type');
-    const data = contentType?.includes('application/json') ? await response.json() : null;
-    if (!response.ok || !data) throw new Error(data?.error || 'Analysis failed');
-
-    // Update conversation object with full analysis data
-    const prev = { sentiment: c.sentiment, intent: c.intent };
-    c.sentiment              = data.sentiment              || c.sentiment;
-    c.intent                 = data.intent                 || c.intent;
-    c.summary                = data.summary                || c.summary;
-    c.dissatisfaction_severity = data.dissatisfaction_severity || c.dissatisfaction_severity;
-    c.issue_category         = data.issue_category         || c.issue_category;
-    c.resolution_status      = data.resolution_status      || c.resolution_status;
-    c.language               = data.language               || c.language;
-    c.agent_performance_score  = data.agent_performance_score  ?? c.agent_performance_score;
-    c.agent_performance_notes  = data.agent_performance_notes  || c.agent_performance_notes;
-    c.key_quotes             = data.key_quotes             || c.key_quotes;
-    c.recommended_action     = data.recommended_action     || c.recommended_action;
-    c.is_alert_worthy        = data.is_alert_worthy        ?? c.is_alert_worthy;
-    c.alert_reason           = data.alert_reason           || c.alert_reason;
-    c.analyzed_at            = new Date().toISOString();
-
-    if (!c.notes) c.notes = [];
-    const sysNote = {
-      author: 'System',
-      text: `Re-analyzed. Sentiment: ${prev.sentiment} → ${c.sentiment} | Intent: ${prev.intent} → ${c.intent}`,
-      ts: new Date().toISOString(),
-      system: true
-    };
-    c.notes.push(sysNote);
-
-    save();
-    dbUpdateConversation(c);
-    dbInsertConversationNote(cid, sysNote);
-
-    // Re-render analysis column and comments
-    if (analysisCol) analysisCol.innerHTML = _buildAnalysisHTML(c);
-    const commentsList = document.getElementById('detail-comments-' + cid);
-    if (commentsList) commentsList.innerHTML = _buildCommentsList(c);
-
-    toast('Analysis updated ✨', 'ok');
-  } catch (err) {
-    toast(err.message, 'i');
-    if (analysisCol) analysisCol.innerHTML = _buildAnalysisHTML(c);
-  } finally {
-    if (btn) { btn.textContent = '▶ Run Again'; btn.disabled = false; }
+  // Open the prompt modal with this conversation ID
+  if (typeof openPromptModal === 'function') {
+    openPromptModal({ convId: cid });
   }
 }
 

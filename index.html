@@ -289,7 +289,7 @@
 <!-- ── View / Edit Prompt Modal ───────────────────────────────── -->
 <div class="add-overlay" id="prompt-modal-overlay">
   <div class="add-modal" style="width:820px;max-width:96vw">
-    <div class="add-title">📝 View / Edit Prompt</div>
+    <div class="add-title">Analyze Conversation</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
       <label style="font-size:12px;color:var(--text3);flex-shrink:0">Select prompt:</label>
       <select id="prompt-modal-select" class="fsel" style="flex:1;min-width:180px;font-size:12px" onchange="promptModalSelectChange()"></select>
@@ -298,7 +298,6 @@
     <textarea class="pl-textarea" id="prompt-modal-ta" style="height:420px"></textarea>
     <div class="modal-btns">
       <button class="btn btn-g" onclick="closePromptModal()">Cancel</button>
-      <button class="btn btn-p" onclick="savePromptModal()">Save as New Prompt</button>
       <button id="prompt-modal-analyze-btn" class="btn btn-p" onclick="runQAFromPromptModal()" style="background:var(--accent2)">▶ Analyze with this Prompt</button>
     </div>
   </div>
